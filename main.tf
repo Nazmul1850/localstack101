@@ -75,13 +75,25 @@ resource "aws_iam_role" "iam_for_lambda" {
   EOF
 }
 
+# data "archive_file" "dynamodb_stream_lambda_function" {
+#   type = "zip"
+#   source_file = "../../lambda-dynamodb-streams/index.js"
+#   output_path = "lambda_function.zip"
+# }
+
+data "archive_file" "python_lambda_package" {  
+  type = "zip"  
+  source_file = "${path.module}/code/lambda_function.py" 
+  output_path = "index.zip"
+}
+
 resource "aws_lambda_function" "test_lambda" {
   filename = "index.zip"
   function_name = "test_lambda_function"
   role = aws_iam_role.iam_for_lambda.arn
-  handler = "index.apiTestHandler"
-  source_code_hash = filebase64sha256("index.zip")
-  runtime = "nodejs14.x"
+  handler = "lambda_function.lambda_handler"
+  source_code_hash = data.archive_file.python_lambda_package.output_base64sha256
+  runtime = "python3.9"
 
   environment {
     variables = {
@@ -131,4 +143,36 @@ resource "aws_lambda_permission" "apigw" {
   function_name = aws_lambda_function.test_lambda.function_name
   principal = "apigateway.amazonaws.com"
   source_arn = "${aws_api_gateway_rest_api.api_gw.execution_arn}/*/*"
+}
+
+resource "aws_dynamodb_table" "test_table" {
+  name           = "test_table_example"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 5
+  write_capacity = 5
+  hash_key = "id"
+
+  attribute {
+    name = "id"
+    type = "N"
+  }
+
+  attribute {
+    name = "name"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name               = "name_index"
+    hash_key           = "name"
+    projection_type    = "ALL"
+    read_capacity      = 5
+    write_capacity     = 5
+  }
+
+  tags = {
+    Name        = "Dynamo-DB-Table"
+    Environment = "Dev"
+  }
+
 }
