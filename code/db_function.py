@@ -1,7 +1,7 @@
-import json
+
 import boto3
 
-def lambda_handler(event, context):
+def db_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('test_table_example')
 
@@ -13,12 +13,14 @@ def lambda_handler(event, context):
 
     for item in items:
         table.put_item(Item=item)
+    
     message = {
-        'message': 'Execution started successfully! DB also'
+        'message': 'DynamoDB table populated successfully'
     }
-    return json.dumps({
+
+    return {
         'isBase64Encoded': True,
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json'},
         'body': message
-    })
+    }
