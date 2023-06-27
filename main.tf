@@ -81,11 +81,6 @@ resource "aws_iam_role" "iam_for_lambda" {
 #   output_path = "lambda_function.zip"
 # }
 
-# data "archive_file" "python_lambda_package" {  
-#   type = "zip"  
-#   source_file = "${path.module}/code" 
-#   output_path = "index.zip"
-# }
 data "archive_file" "python_lambda_package" {  
   type = "zip"  
   source_file = "${path.module}/code/lambda_function.py" 
@@ -148,36 +143,4 @@ resource "aws_lambda_permission" "apigw" {
   function_name = aws_lambda_function.test_lambda.function_name
   principal = "apigateway.amazonaws.com"
   source_arn = "${aws_api_gateway_rest_api.api_gw.execution_arn}/*/*"
-}
-
-resource "aws_dynamodb_table" "test_table" {
-  name           = "test_table_example"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 5
-  write_capacity = 5
-  hash_key = "id"
-
-  attribute {
-    name = "id"
-    type = "N"
-  }
-
-  attribute {
-    name = "name"
-    type = "S"
-  }
-
-  global_secondary_index {
-    name               = "name_index"
-    hash_key           = "name"
-    projection_type    = "ALL"
-    read_capacity      = 5
-    write_capacity     = 5
-  }
-
-  tags = {
-    Name        = "Dynamo-DB-Table"
-    Environment = "Dev"
-  }
-
 }
