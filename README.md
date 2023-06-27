@@ -18,3 +18,4 @@
 - Then created a aws iam role.
 - Applied required resources for api gateway.
 - Created a lambda function that prints a json data after invoking the url
+    - http://localhost:4566/restapis/<API_GW_ID>/test/_user_request_/my_api_route
